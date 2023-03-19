@@ -1,5 +1,20 @@
+import random
 import telebot
+import requests
 from telebot import types
+from bs4 import BeautifulSoup as b
+
+URL = 'https://www.anekdot.ru/last/good'
+
+def parser(url):
+    r = requests.get(url)
+    soup = b(r.text, 'html.parser')
+    anecdots = soup.find_all('div', class_='text')
+    return [c.text for c in anecdots]
+
+list_of_jokes = parser(URL)
+random.shuffle(list_of_jokes)
+#print(list_of_jokes)
 
 bot = telebot.TeleBot('6061314193:AAGFmHUnFxYCFqGinNKvbCZtxMrKTVL7phg')
 
@@ -31,6 +46,9 @@ def get_user_text(message):
     elif message.text.isdigit():
         photo = open (f'photos\\{int(message.text)}.jpg', 'rb')
         bot.send_photo(message.chat.id, photo)
+    elif message.text.lower() == 'joke':
+        bot.send_message(message.chat.id, list_of_jokes[0])
+        del list_of_jokes[0]
     else:
         bot.send_message(message.chat.id, 'Не понял', parse_mode='html')
 
